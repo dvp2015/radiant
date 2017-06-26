@@ -7,7 +7,6 @@ UP = [0, 1, 0]
 
 class Camera:
     def __init__(self, eye, target, up=None):
-        super().__init__()
         self.view = None
         self.projection = None
 

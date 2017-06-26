@@ -11,7 +11,6 @@ class ModernGLRenderer:
         self.model_stack = [np.eye(4, dtype='f4')]
 
     def render(self, scene, camera):
-        # TODO: eagerly determine camera world matrix before traversing
         def visit(node):
             self.model_stack.append(self.model_stack[-1] @ node.model)
             self.render_object(node, camera, self.model_stack[-1])
