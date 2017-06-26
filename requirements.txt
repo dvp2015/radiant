@@ -1,5 +1,4 @@
+moderngl
 numpy
 pillow
-moderngl
-moderngl.ext.obj
 pyrr
