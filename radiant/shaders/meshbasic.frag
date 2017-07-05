@@ -1,6 +1,6 @@
 #version 330
 
-uniform vec4 Color;
+uniform vec4 color;
 
 out vec4 out_color;
 

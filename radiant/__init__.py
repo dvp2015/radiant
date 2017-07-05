@@ -1,3 +1,4 @@
+# flake8: noqa
 """Python 3D rendering library."""
 from .geometries import *
 from .materials import *
