@@ -1,9 +1,9 @@
-import numpy as np
+import pyrr
 
 
 class Object3D:
     def __init__(self):
-        self.model = np.eye(4, dtype='f4')
+        self.model = pyrr.Matrix44.identity(dtype='f4')
         self.children = []
 
 

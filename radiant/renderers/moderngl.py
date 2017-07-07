@@ -3,7 +3,7 @@ from functools import lru_cache
 
 import ModernGL
 
-import numpy as np
+import pyrr
 
 from .base import Renderer
 from ..materials import MeshBasicMaterial
@@ -13,7 +13,7 @@ from ..scenes import Mesh
 class ModernGLRenderer(Renderer):
     def __init__(self, context):
         self.ctx = context
-        self.model_stack = [np.eye(4, dtype='f4')]
+        self.model_stack = [pyrr.Matrix44.identity(dtype='f4')]
 
     def render(self, scene, camera):
         """
