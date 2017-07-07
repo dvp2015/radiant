@@ -64,7 +64,7 @@ class ModernGLRenderer(Renderer):
             vao = self.get_vertex_array(node)
 
             # configure uniforms
-            vao.program.uniforms['mvp'].write((view_projection * world).astype('f4').tobytes())
+            vao.program.uniforms['mvp'].write((view_projection * world).tobytes())
             if isinstance(node.material, MeshBasicMaterial):
                 vao.program.uniforms['color'].value = node.material.color
 
