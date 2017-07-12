@@ -1,4 +1,9 @@
-moderngl
 numpy
-pillow
 pyrr
+# moderngl backend requirements
+moderngl
+# testing requirements
+pillow
+pytest
+flake8
+flake8-import-order

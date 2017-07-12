@@ -5,5 +5,6 @@ from .materials import *
 from .scenes import *
 from .cameras import *
 from .renderers import *
+from .util import *
 
 __version__ = '0.1.0'

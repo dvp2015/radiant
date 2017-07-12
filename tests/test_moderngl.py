@@ -1,17 +1,18 @@
 import os
 
 import ModernGL
-
 from PIL import Image
+import pytest
 
 import radiant
 from radiant.renderers.moderngl import ModernGLRenderer
 
 
+@pytest.mark.skipif(os.environ.get('TRAVIS') == 'true', reason="travis does not support opengl 3.3")
 def test_moderngl_renderer():
     # create context
     ctx = ModernGL.create_standalone_context()
-    
+
     # create renderer
     renderer = ModernGLRenderer(ctx)
 
