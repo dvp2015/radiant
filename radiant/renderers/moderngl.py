@@ -1,32 +1,29 @@
-from collections import OrderedDict
 from functools import lru_cache
 
 import ModernGL
-
-import pyrr
+import numpy as np
 
 from .base import Renderer
-from ..materials import MeshBasicMaterial
 from ..scenes import Mesh
 
 
 class ModernGLRenderer(Renderer):
     def __init__(self, context):
         self.ctx = context
-        self.model_stack = [pyrr.Matrix44.identity(dtype='f4')]
 
-    def render(self, scene, camera):
+    def render(self, scene, camera, light=None):
         """
         Render scene from the camera viewpoint.
         """
-        view_projection = camera.projection * camera.view
+        camera.update()
+        if light:
+            light.update()
 
         def visit(node):
-            self.model_stack.append(self.model_stack[-1] * node.model)
-            self.render_object(node, view_projection, self.model_stack[-1])
+            node.update()
+            self.render_object(node, camera, light=light)
             for child in node.children:
                 visit(child)
-            self.model_stack.pop()
 
         # get going
         self.ctx.enable(ModernGL.DEPTH_TEST)
@@ -36,18 +33,18 @@ class ModernGLRenderer(Renderer):
     @lru_cache(maxsize=None)
     def get_vertex_array(self, node):
         # get the shader program
-        mapping = OrderedDict([
-            ('vert', self.ctx.vertex_shader),
-            ('geom', self.ctx.geometry_shader),
-            ('frag', self.ctx.fragment_shader),
-        ])
+        mapping = {
+            'vert': self.ctx.vertex_shader,
+            'geom': self.ctx.geometry_shader,
+            'frag': self.ctx.fragment_shader,
+        }
         shaders = [mapping[key](source) for key, source in node.material.shaders.items()]
         prog = self.ctx.program(shaders)
 
         # build the vertex buffers
         vertex_buffers = [
             (self.ctx.buffer(data.tobytes()), f"{data.shape[-1]}{data.dtype.kind}", [key])
-            for key, data in node.geometry.attributes.items()
+            for key, data in node.geometry.attributes.items() if key in prog.attributes
         ]
 
         # build the index buffers
@@ -58,15 +55,36 @@ class ModernGLRenderer(Renderer):
         # construct the vertex array
         return self.ctx.vertex_array(prog, vertex_buffers, index_buffer)
 
-    def render_object(self, node, view_projection, world):
+    def render_object(self, node, camera, light=None):
         if isinstance(node, Mesh):
             # get the vao
             vao = self.get_vertex_array(node)
 
-            # configure uniforms
-            vao.program.uniforms['mvp'].write((view_projection * world).tobytes())
-            if isinstance(node.material, MeshBasicMaterial):
-                vao.program.uniforms['color'].value = node.material.color
+            # compute transforms for this node
+            model_view_matrix = camera.view * node.model
+            normal_matrix = model_view_matrix.inverse.T
+
+            # set the transformation uniforms
+            uniforms = {
+                'model_view_matrix': model_view_matrix,
+                'projection_matrix': camera.projection,
+                'normal_matrix': normal_matrix,
+            }
+            if light:
+                # add the light uniforms
+                uniforms['light_pos'] = light.position
+            # add the material uniforms
+            uniforms.update(node.material.uniforms)
+
+            # assign them based on the program needs
+            for key, _ in vao.program.uniforms:
+                value = uniforms[key]
+                if isinstance(value, np.ndarray):
+                    vao.program.uniforms[key].write(value.tobytes())
+                elif isinstance(value, (tuple, float, int)):
+                    vao.program.uniforms[key].value = value
+                else:
+                    raise ValueError(f"{type(value)} is not a supported type as a uniform value")
 
             # do it
             vao.render()

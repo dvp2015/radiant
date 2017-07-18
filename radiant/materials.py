@@ -1,6 +1,8 @@
 from functools import lru_cache
 import os
 
+__all__ = ('Material', 'MeshBasicMaterial', 'MeshPhongMaterial')
+
 
 @lru_cache(maxsize=None)
 def load_shader_sources(key):
@@ -22,11 +24,21 @@ def load_shader_sources(key):
 
 
 class Material:
-    def __init__(self, shaders=None):
+    def __init__(self, shaders=None, uniforms=None):
         self.shaders = shaders or {}
+        self.uniforms = uniforms or {}
 
 
 class MeshBasicMaterial(Material):
     def __init__(self, color=(1.0, 0.0, 0.0, 1.0)):
-        super().__init__(load_shader_sources('meshbasic'))
-        self.color = color
+        super().__init__(shaders=load_shader_sources('meshbasic'), uniforms={
+            'color': color
+        })
+
+
+class MeshPhongMaterial(Material):
+    def __init__(self, color=(1.0, 0.0, 0.0, 1.0), shininess=4.0):
+        super().__init__(shaders=load_shader_sources('meshphong'), uniforms={
+            'color': color,
+            'shininess': shininess
+        })
