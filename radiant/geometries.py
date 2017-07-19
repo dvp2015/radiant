@@ -1,4 +1,5 @@
 import numpy as np
+import pyrr
 
 from pyrr.vector3 import generate_vertex_normals
 
@@ -50,35 +51,14 @@ class PlaneGeometry(BufferGeometry):
 
 
 class CubeGeometry(BufferGeometry):
-    def __init__(self):
+    def __init__(self, width=1, height=1, depth=1):
         attributes = {}
 
         # 8 corners
-        attributes["pos"] = np.array([
-            [-1.0, -1.0,  1.0],
-            [1.0, -1.0,  1.0],
-            [-1.0,  1.0,  1.0],
-            [1.0,  1.0,  1.0],
-            [-1.0, -1.0, -1.0],
-            [1.0, -1.0, -1.0],
-            [-1.0,  1.0, -1.0],
-            [1.0,  1.0, -1.0],
-        ], dtype='f4') * 0.5
+        plane_side = PlaneGeometry(width=width, height=height)
 
-        # 6 sides, 2 triangles each
-        index = np.array([
-            [0, 6, 4],
-            [0, 2, 6],
-            [1, 5, 7],
-            [1, 7, 3],
-            [1, 0, 4],
-            [1, 4, 5],
-            [3, 7, 6],
-            [3, 6, 2],
-            [3, 0, 1],
-            [3, 2, 0],
-            [7, 5, 4],
-            [7, 4, 6],
-        ], dtype='i4')
+        
+        pyrr.Quaternion.from_x_rotation(90, dtype='f4')
+
 
         super().__init__(attributes, index=index)
