@@ -1,6 +1,6 @@
 import numpy as np
 
-from .util import generate_vertex_normals
+from pyrr.vector3 import generate_vertex_normals
 
 
 __all__ = ('Geometry', 'BufferGeometry', 'PlaneGeometry', 'CubeGeometry')
