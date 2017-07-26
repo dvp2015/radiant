@@ -4,6 +4,8 @@ in vec3 pos_viewspace;
 in vec3 normal_viewspace;
 in vec3 light_pos_viewspace;
 
+out vec4 frag_color;
+
 uniform vec4 color;
 uniform float shininess;
 
@@ -26,5 +28,5 @@ void main() {
 		specular = pow(spec_angle, shininess);
 	}
 
-	gl_FragColor = lambertian * color + specular * specular_color;
+	frag_color = lambertian * color + specular * specular_color;
 }

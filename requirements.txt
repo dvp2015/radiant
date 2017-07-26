@@ -7,3 +7,5 @@ pillow
 pytest
 flake8
 flake8-import-order
+# examples requirements
+PyQt5

@@ -29,6 +29,7 @@ class ModernGLRenderer(Renderer):
         self.ctx.enable(ModernGL.DEPTH_TEST)
         self.ctx.clear(0.9, 0.9, 0.9)
         visit(scene)
+        self.ctx.finish()
 
     @lru_cache(maxsize=None)
     def get_vertex_array(self, node):
@@ -87,4 +88,5 @@ class ModernGLRenderer(Renderer):
                     raise ValueError(f"{type(value)} is not a supported type as a uniform value")
 
             # do it
-            vao.render()
+            mgl_primitive = getattr(ModernGL, node.geometry.primitive.name)
+            vao.render(mgl_primitive)
