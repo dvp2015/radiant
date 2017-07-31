@@ -4,8 +4,9 @@ import pyrr
 class Object3D:
     def __init__(self, position=(0, 0, 0)):
         self._position = pyrr.Vector3(position, dtype='f4')
+        self._position.flags.writeable = False
         self._parent = None
-        self._children = []
+        self._children = tuple()
         self._model = None
         self.dirty = True
 
@@ -15,6 +16,7 @@ class Object3D:
             if self._parent:
                 self._parent.update()
                 self._model = self._parent.model * self._model
+            self._model.flags.writeable = False
             self.dirty = False
 
     @property
@@ -28,6 +30,7 @@ class Object3D:
     @position.setter
     def position(self, value):
         self._position = value
+        self._position.flags.writeable = False
         self.dirty = True
 
     @property
@@ -42,14 +45,14 @@ class Object3D:
         if child.parent is not None:
             raise RuntimeError("Detach from parent first")
         # TODO: detect circular references?
-        self._children.append(child)
+        self._children = self._children + tuple([child])
         child._parent = self
         child.dirty = True
 
     def remove_child(self, child):
         if child.parent is not self:
             raise RuntimeError("Node is not a child of this object")
-        self._children.remove(child)
+        self._children = tuple([c for c in self._children if c is not child])
         child._parent = None
         child.dirty = True
 
