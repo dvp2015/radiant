@@ -7,6 +7,9 @@ from PyQt5.QtGui import QGuiApplication, QOpenGLWindow, QSurfaceFormat
 from radiant.renderers.moderngl import ModernGLRenderer
 
 
+app = None  # this is scoped out so the garbage collector is forced to clear it last
+
+
 class GLWindow(QOpenGLWindow):
     def __init__(self, scene, camera, light):
         super().__init__()
@@ -30,6 +33,7 @@ class GLWindow(QOpenGLWindow):
 def show_scene(scene, camera, light):
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # support Ctrl+C to quit (without cleanup!)
 
+    global app
     app = QGuiApplication(sys.argv)
 
     window = GLWindow(scene, camera, light)

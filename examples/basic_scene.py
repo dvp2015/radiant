@@ -13,7 +13,7 @@ def generate_scene():
     scene.append_child(plane)
 
     # create a light
-    light = radiant.Light(position=[-0.5, -0.5, 4])
+    light = radiant.PointLight(position=[-0.5, -0.5, 4])
     plane.append_child(light)  # follow the plane
 
     # create a camera

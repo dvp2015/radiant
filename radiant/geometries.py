@@ -5,7 +5,7 @@ import numpy as np
 from pyrr.vector3 import generate_vertex_normals
 
 
-__all__ = ('Primitives', 'Geometry', 'PlaneGeometry', 'CubeGeometry')
+__all__ = ('Primitives', 'Geometry', 'PlaneGeometry')
 
 
 class Primitives(Enum):
@@ -14,11 +14,17 @@ class Primitives(Enum):
     POINTS = "POINTS"
 
 
+class WindingOrders(Enum):
+    CCW = 'CCW'
+    CW = 'CW'
+
+
 class Geometry:
-    def __init__(self, attributes, index=None, primitive=Primitives.TRIANGLES):
+    def __init__(self, attributes, index=None, primitive=Primitives.TRIANGLES, winding_order=WindingOrders.CCW):
         self.attributes = attributes
         self.index = index
         self.primitive = primitive
+        self.winding_order = winding_order
 
 
 class PlaneGeometry(Geometry):
@@ -50,40 +56,5 @@ class PlaneGeometry(Geometry):
 
         # generate normals
         attributes["normal"] = generate_vertex_normals(vertices, index)
-
-        super().__init__(attributes, index=index)
-
-
-class CubeGeometry(Geometry):
-    def __init__(self):
-        attributes = {}
-
-        # 8 corners
-        attributes["pos"] = np.array([
-            [-1.0, -1.0,  1.0],
-            [1.0, -1.0,  1.0],
-            [-1.0,  1.0,  1.0],
-            [1.0,  1.0,  1.0],
-            [-1.0, -1.0, -1.0],
-            [1.0, -1.0, -1.0],
-            [-1.0,  1.0, -1.0],
-            [1.0,  1.0, -1.0],
-        ], dtype='f4') * 0.5
-
-        # 6 sides, 2 triangles each
-        index = np.array([
-            [0, 6, 4],
-            [0, 2, 6],
-            [1, 5, 7],
-            [1, 7, 3],
-            [1, 0, 4],
-            [1, 4, 5],
-            [3, 7, 6],
-            [3, 6, 2],
-            [3, 0, 1],
-            [3, 2, 0],
-            [7, 5, 4],
-            [7, 4, 6],
-        ], dtype='i4')
 
         super().__init__(attributes, index=index)

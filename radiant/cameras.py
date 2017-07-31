@@ -5,7 +5,7 @@ from .scenes import Object3D
 
 
 class Camera(Object3D):
-    def __init__(self, target=(0, 0, 0), up=(0, 0, 0), **kwargs):
+    def __init__(self, target=(0, 0, 0), up=(0, 1, 0), **kwargs):
         super().__init__(**kwargs)
         self._target = np.asarray(target, dtype='f4')
         self._up = np.asarray(up, dtype='f4')

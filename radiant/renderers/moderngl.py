@@ -27,6 +27,7 @@ class ModernGLRenderer(Renderer):
 
         # get going
         self.ctx.enable(ModernGL.DEPTH_TEST)
+        self.ctx.enable(ModernGL.CULL_FACE)
         self.ctx.clear(0.9, 0.9, 0.9)
         visit(scene)
         self.ctx.finish()
@@ -48,13 +49,15 @@ class ModernGLRenderer(Renderer):
             for key, data in node.geometry.attributes.items() if key in prog.attributes
         ]
 
+        vao_args = [prog, vertex_buffers]
+
         # build the index buffers
-        index_buffer = None
         if node.geometry.index is not None:
             index_buffer = self.ctx.buffer(node.geometry.index.tobytes())
+            vao_args.append(index_buffer)
 
         # construct the vertex array
-        return self.ctx.vertex_array(prog, vertex_buffers, index_buffer)
+        return self.ctx.vertex_array(*vao_args)
 
     def render_object(self, node, camera, light=None):
         if isinstance(node, Mesh):
@@ -69,11 +72,12 @@ class ModernGLRenderer(Renderer):
             uniforms = {
                 'model_view_matrix': model_view_matrix,
                 'projection_matrix': camera.projection,
+                'view_matrix': camera.view,
                 'normal_matrix': normal_matrix,
             }
             if light:
                 # add the light uniforms
-                uniforms['light_pos'] = light.position
+                uniforms.update(light.uniforms)
             # add the material uniforms
             uniforms.update(node.material.uniforms)
 
@@ -87,6 +91,7 @@ class ModernGLRenderer(Renderer):
                 else:
                     raise ValueError(f"{type(value)} is not a supported type as a uniform value")
 
-            # do it
+            # actually render
             mgl_primitive = getattr(ModernGL, node.geometry.primitive.name)
+            self.ctx.front_face = node.geometry.winding_order.value
             vao.render(mgl_primitive)

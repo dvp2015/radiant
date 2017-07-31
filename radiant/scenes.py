@@ -1,10 +1,9 @@
-import numpy as np
 import pyrr
 
 
 class Object3D:
     def __init__(self, position=(0, 0, 0)):
-        self._position = np.asarray(position, dtype='f4')
+        self._position = pyrr.Vector3(position, dtype='f4')
         self._parent = None
         self._children = []
         self._model = None
@@ -64,7 +63,3 @@ class Mesh(Object3D):
         super().__init__(**kwargs)
         self.geometry = geometry
         self.material = material
-
-
-class Light(Object3D):
-    pass

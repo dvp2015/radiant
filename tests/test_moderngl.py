@@ -19,7 +19,7 @@ def test_basic_material():
     # create scene
     scene = radiant.Scene()
 
-    cube_geom = radiant.CubeGeometry()
+    cube_geom = radiant.PlaneGeometry()
     red = radiant.MeshBasicMaterial(color=(1.0, 0.0, 0.0, 0.0))
     cube = radiant.Mesh(cube_geom, red)
     scene.append_child(cube)
@@ -61,7 +61,7 @@ def test_phong():
     scene.append_child(plane)
 
     # create a light
-    light = radiant.Light(position=[-0.5, -0.5, 4])
+    light = radiant.PointLight(position=[-0.5, -0.5, 4])
     plane.append_child(light)  # follow the plane
 
     # create camera
