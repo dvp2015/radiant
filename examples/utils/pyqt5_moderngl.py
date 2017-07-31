@@ -16,6 +16,7 @@ class GLWindow(QOpenGLWindow):
         fmt = QSurfaceFormat()
         fmt.setVersion(3, 3)
         fmt.setProfile(QSurfaceFormat.CoreProfile)
+        fmt.setStencilBufferSize(8)
         self.setFormat(fmt)
         self.scene, self.camera, self.light = scene, camera, light
 
