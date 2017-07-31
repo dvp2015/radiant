@@ -1,10 +1,14 @@
+import collections
+
+import numpy as np
 import pyrr
 
 
 class Object3D:
-    def __init__(self, position=(0, 0, 0)):
-        self._position = pyrr.Vector3(position, dtype='f4')
-        self._position.flags.writeable = False
+    def __init__(self, position=(0, 0, 0), scale=(1, 1, 1), rotation=(0, 0, 0)):
+        self.position = position
+        self.scale = scale
+        self.rotation = rotation
         self._parent = None
         self._children = tuple()
         self._model = None
@@ -12,7 +16,10 @@ class Object3D:
 
     def update(self):
         if self.dirty:
-            self._model = pyrr.Matrix44.from_translation(self._position)
+            scale = pyrr.Matrix44.from_scale(self._scale, dtype='f4')
+            translate = pyrr.Matrix44.from_translation(self._position, dtype='f4')
+            # Scale -> Rotate -> Translate
+            self._model = translate * self._rotation.matrix44.astype('f4') * scale
             if self._parent:
                 self._parent.update()
                 self._model = self._parent.model * self._model
@@ -29,8 +36,36 @@ class Object3D:
 
     @position.setter
     def position(self, value):
-        self._position = value
+        self._position = pyrr.Vector3(value, dtype='f4')
         self._position.flags.writeable = False
+        self.dirty = True
+
+    @property
+    def scale(self):
+        return self._scale
+
+    @scale.setter
+    def scale(self, value):
+        self._scale = pyrr.Vector3(value, dtype='f4')
+        self._scale.flags.writeable = False
+        self.dirty = True
+
+    @property
+    def rotation(self):
+        return self._rotation
+
+    @rotation.setter
+    def rotation(self, value):
+        if isinstance(value, pyrr.Quaternion):
+            self._rotation = value.astype('f4')
+        elif isinstance(value, (pyrr.Matrix44, pyrr.Matrix33, np.ndarray)) and value.shape in ((3, 3), (4, 4)):
+            self._rotation = pyrr.Quaternion.from_matrix(value, dtype='f4')
+        elif (isinstance(value, np.ndarray) and value.shape == [3]) or (isinstance(value, collections.Iterable) and len(value) == 3):
+            self._rotation = pyrr.Quaternion.from_eulers(pyrr.euler.create(*value, dtype='f4'))
+        else:
+            # TODO: support 3x3 or 4x4 lists
+            raise ValueError(f"rotation type {type(value)} not understood")
+        self._rotation.flags.writeable = False
         self.dirty = True
 
     @property
