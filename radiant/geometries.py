@@ -5,7 +5,7 @@ import numpy as np
 from pyrr.vector3 import generate_vertex_normals
 
 
-__all__ = ('Primitives', 'Geometry', 'PlaneGeometry')
+__all__ = ('Primitives', 'WindingOrders', 'Geometry', 'PlaneGeometry')
 
 
 class Primitives(Enum):
