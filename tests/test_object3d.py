@@ -80,3 +80,35 @@ def test_rotation():
         assert a.rotation.dtype.kind == 'f'
         assert a.rotation.dtype.itemsize == 4
         assert isinstance(a.rotation, pyrr.Quaternion)
+
+
+def test_model_setter():
+    a = radiant.Object3D()
+    assert a.dirty is True
+    a.update()
+    assert a.dirty is False
+
+    # define expectations
+    expected_scale = pyrr.Vector3([1, 1, 2], dtype='f4')
+    expected_rotation = pyrr.Quaternion.from_y_rotation(np.pi, dtype='f4')
+    expected_translation = pyrr.Vector3([10, 0, -5], dtype='f4')
+    expected_model = pyrr.Matrix44([
+        [-1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, -2, 0],
+        [10, 0, -5, 1],
+    ], dtype='f4')
+
+    # call setter
+    a.model = expected_model
+    assert a.dirty is True
+    a.update()
+    assert a.dirty is False
+
+    # assertions
+    npt.assert_almost_equal(a.scale, expected_scale)
+    assert a.scale.dtype == expected_scale.dtype
+    npt.assert_almost_equal(a.rotation, expected_rotation)
+    assert a.rotation.dtype == expected_rotation.dtype
+    npt.assert_almost_equal(a.position, expected_translation)
+    assert a.position.dtype == expected_translation.dtype

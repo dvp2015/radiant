@@ -3,6 +3,8 @@ import collections
 import numpy as np
 import pyrr
 
+from .maths import decompose
+
 
 class Object3D:
     def __init__(self, position=(0, 0, 0), scale=(1, 1, 1), rotation=(0, 0, 0)):
@@ -29,6 +31,10 @@ class Object3D:
     @property
     def model(self):
         return self._model
+
+    @model.setter
+    def model(self, value):
+        self.scale, self.rotation, self.position = decompose(value)
 
     @property
     def position(self):
