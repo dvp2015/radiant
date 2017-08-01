@@ -56,15 +56,21 @@ class Object3D:
 
     @rotation.setter
     def rotation(self, value):
+        value = np.asanyarray(value, dtype='f4')
         if isinstance(value, pyrr.Quaternion):
             self._rotation = value.astype('f4')
-        elif isinstance(value, (pyrr.Matrix44, pyrr.Matrix33, np.ndarray)) and value.shape in ((3, 3), (4, 4)):
-            self._rotation = pyrr.Quaternion.from_matrix(value, dtype='f4')
-        elif (isinstance(value, np.ndarray) and value.shape == [3]) or (isinstance(value, collections.Iterable) and len(value) == 3):
-            self._rotation = pyrr.Quaternion.from_eulers(pyrr.euler.create(*value, dtype='f4'))
+        elif isinstance(value, (np.ndarray, collections.Iterable)):
+            value = np.asanyarray(value, dtype='f4')
+            if value.shape in ((3, 3), (4, 4)):
+                self._rotation = pyrr.Quaternion.from_matrix(value, dtype='f4')
+            elif value.shape == (3,):
+                self._rotation = pyrr.Quaternion.from_eulers(pyrr.euler.create(*value, dtype='f4'))
+            elif value.shape == (4,):
+                self._rotation = pyrr.Quaternion(value, dtype='f4')
+            else:
+                raise ValueError(f"unexpected shape {value.shape} for rotation")
         else:
-            # TODO: support 3x3 or 4x4 lists
-            raise ValueError(f"rotation type {type(value)} not understood")
+            raise ValueError(f"unexpected type {type(value)} for rotation")
         self._rotation.flags.writeable = False
         self.dirty = True
 

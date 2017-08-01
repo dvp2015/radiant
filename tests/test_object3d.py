@@ -12,11 +12,18 @@ def test_immutability():
     # should all be readonly
     with pytest.raises(ValueError):
         a.rotation[0] = 5
+    with pytest.raises(ValueError):
         a.scale[0] = 5
+    with pytest.raises(ValueError):
         a.scale.x = 5
+    with pytest.raises(ValueError):
         a.position[1] = 5
+    with pytest.raises(ValueError):
         a.position.y = 5
+    with pytest.raises(AttributeError):
         a.children = [5]
+    with pytest.raises(AttributeError):
+        a.children.append(5)
 
 
 def test_model_matrix():
@@ -53,16 +60,19 @@ def test_rotation():
         pyrr.Quaternion.from_x_rotation(0),
         pyrr.Matrix33.from_x_rotation(0),
         pyrr.Matrix44.from_x_rotation(0),
-        [0, 0, 0],
+        pyrr.Vector3([0, 0, 0]),
+        pyrr.Vector4([0, 0, 0, 1]),
         np.array([0, 0, 0]),
+        np.array([0, 0, 0, 1]),
         np.identity(4),
         np.identity(3),
+        np.array([0, 0, 0]).tolist(),
+        np.array([0, 0, 0, 1]).tolist(),
+        np.identity(4).tolist(),
+        np.identity(3).tolist(),
     ]
-    a_id = id(a.rotation)
     for value in values:
         a.rotation = value
-        assert id(a.rotation) != a_id
-        a_id = id(a.rotation)
         assert a.dirty is True
         a.update()
         assert a.dirty is False
