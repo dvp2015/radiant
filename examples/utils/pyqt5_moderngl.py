@@ -1,7 +1,7 @@
 import signal
 import sys
 
-import ModernGL
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QGuiApplication, QOpenGLWindow, QSurfaceFormat
 
 from radiant.renderers.moderngl import ModernGLRenderer
@@ -21,14 +21,17 @@ class GLWindow(QOpenGLWindow):
         self.scene, self.camera, self.light = scene, camera, light
 
     def initializeGL(self):
-        self.ctx = ModernGL.create_context()
-        self.renderer = ModernGLRenderer(self.ctx)
+        self.renderer = ModernGLRenderer()
 
     def resizeGL(self, width, height):
-        self.ctx.viewport = (0, 0, width, height)
+        self.renderer.viewport = (0, 0, width, height)
 
     def paintGL(self):
         self.renderer.render(self.scene, self.camera, self.light)
+
+    def keyPressEvent(self, e):
+        if e.key() == Qt.Key_Escape:
+            self.close()        
 
 
 def show_scene(scene, camera, light):

@@ -8,8 +8,16 @@ from ..scenes import Mesh
 
 
 class ModernGLRenderer(Renderer):
-    def __init__(self, context):
-        self.ctx = context
+    def __init__(self, context=None):
+        self.ctx = context or ModernGL.create_context()
+
+    @property
+    def viewport(self):
+        return self.ctx.viewport
+
+    @viewport.setter
+    def viewport(self, viewport):
+        self.ctx.viewport = viewport
 
     def render(self, scene, camera, light=None):
         """
