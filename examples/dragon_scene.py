@@ -27,4 +27,4 @@ def generate_scene():
 
 
 if __name__ == "__main__":
-    show_scene(*generate_scene())
+    show_scene("dragon scene", *generate_scene())
