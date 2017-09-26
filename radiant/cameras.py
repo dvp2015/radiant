@@ -7,8 +7,8 @@ from .scenes import Object3D
 class Camera(Object3D):
     def __init__(self, target=(0, 0, 0), up=(0, 1, 0), **kwargs):
         super().__init__(**kwargs)
-        self._target = np.asarray(target, dtype='f4')
-        self._up = np.asarray(up, dtype='f4')
+        self.target = target
+        self.up = up
         self._view = None
 
     @property
@@ -21,7 +21,8 @@ class Camera(Object3D):
 
     @target.setter
     def target(self, value):
-        self._target = value
+        self._target = pyrr.Vector3(value, dtype='f4')
+        self._target.flags.writeable = False
         self.dirty = True
 
     @property
@@ -30,12 +31,26 @@ class Camera(Object3D):
 
     @up.setter
     def up(self, value):
-        self._up = value
+        self._up = pyrr.Vector3(value, dtype='f4')
+        self._up.flags.writeable = False
         self.dirty = True
+
+    @property
+    def view_side(self):
+        return pyrr.Vector3(np.asarray(self._view)[0:3, 0])
+
+    @property
+    def view_up(self):
+        return pyrr.Vector3(np.asarray(self._view)[0:3, 1])
+
+    @property
+    def view_forward(self):
+        return pyrr.Vector3(-np.asarray(self._view)[0:3, 2])
 
     def update(self):
         if self.dirty:
             self._view = pyrr.Matrix44.look_at(self._position, self._target, self._up, dtype='f4')
+            self._view.flags.writeable = False
         super().update()
 
     def look_at(self, eye, target, up=None):
@@ -89,4 +104,5 @@ class PerspectiveCamera(Camera):
     def update(self):
         if self.dirty:
             self._projection = pyrr.Matrix44.perspective_projection(self._fov, self._aspect, self._near, self._far, dtype='f4')
+            self._projection.flags.writeable = False
         super().update()

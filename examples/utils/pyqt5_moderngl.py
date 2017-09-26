@@ -111,7 +111,6 @@ class GLWidget(QOpenGLWidget):
         self.renderer.viewport = (0, 0, width, height)
 
     def paintGL(self):
-        print("rendering")
         self.renderer.render(self.scene, self.camera, self.light)
 
     def keyPressEvent(self, e):
@@ -134,8 +133,6 @@ class GLWidget(QOpenGLWidget):
 
 
 def show_scene(title, scene, camera, light):
-    signal.signal(signal.SIGINT, signal.SIG_DFL)  # support Ctrl+C to quit (without cleanup!)
-
     global app
     app = QApplication(sys.argv)
 

@@ -7,16 +7,16 @@ __all__ = ('decompose',)
 
 def decompose(matrix44):
     # indexing pyrr matrices is not a pleasant experience, so let's
-    matrix44 = np.asarray(matrix44)
+    m = np.asarray(m)
 
-    scale = np.linalg.norm(matrix44[:3, :3], axis=0)
+    scale = np.linalg.norm(m[:3, :3], axis=1)
 
-    det = np.linalg.det(matrix44)
+    det = np.linalg.det(m)
     if det < 0:
         scale[0] *= -1
 
-    position = matrix44[3, :3]
+    position = m[3, :3]
 
-    rotation = matrix44[:3, :3] * (1 / scale)
+    rotation = m[:3, :3] * (1 / scale)[:, None]
 
     return pyrr.Vector3(scale), pyrr.Quaternion.from_matrix(rotation), pyrr.Vector3(position)
