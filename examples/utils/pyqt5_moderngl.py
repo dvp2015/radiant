@@ -1,14 +1,14 @@
-import signal
 import sys
 
 from PyQt5.QtCore import QEvent, Qt, QTimer
 from PyQt5.QtGui import QCursor, QSurfaceFormat, QWheelEvent
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QOpenGLWidget, QWidget
 
+import radiant
 from radiant.renderers.moderngl import ModernGLRenderer
 
 
-app = None  # this is scoped out so the garbage collector is forced to clear it last
+app = None  # this is the only variable scoped globally so the garbage collector is forced to clear it last
 
 
 class Window(QWidget):
@@ -19,6 +19,7 @@ class Window(QWidget):
         self.glWidget.scene = scene
         self.glWidget.camera = camera
         self.glWidget.light = light
+        self.glWidget.controls = PanZoomControls(self.glWidget, camera)
 
         self.setWindowTitle(f"PyQt5 + ModernGL: {title}")
 
@@ -27,10 +28,8 @@ class Window(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
-        QApplication.setOverrideCursor(QCursor(Qt.BlankCursor))
 
-
-def mouse_event(e):
+def pyqt_to_radiant_mouse(e):
     """Map a PyQt5 mouse event to a radiant event."""
     type_map = {
         QEvent.MouseButtonPress: "Press",
@@ -44,6 +43,7 @@ def mouse_event(e):
         "Right": Qt.RightButton,
         "Middle": Qt.MiddleButton,
     }
+    button_map_inv = {v: k for k, v in button_map.items()}
 
     modifier_map = {
         "Shift": Qt.ShiftModifier,
@@ -52,7 +52,7 @@ def mouse_event(e):
     }
 
     re = {
-        'pos': (e.x(), e.y()),
+        'pos': (e.globalX(), e.globalY()),
         'buttons': [button for button, qt_button in button_map.items() if e.buttons() & qt_button],
         'modifiers': [key for key, qt_modifier in modifier_map.items() if e.modifiers() & qt_modifier],
     }
@@ -62,11 +62,12 @@ def mouse_event(e):
         re['delta'] = (e.angleDelta().x(), e.angleDelta().y())
     else:
         re['type'] = type_map[e.type()]
+        re['button'] = button_map_inv.get(e.button())
 
     return re
 
 
-def key_event(e):
+def pyqt_to_radiant_key(e):
     """Map a PyQt5 key event to a radiant event."""
     type_map = {
         QEvent.KeyPress: "Press",
@@ -84,6 +85,52 @@ def key_event(e):
         'key': e.text(),
         'modifiers': [key for key, qt_modifier in modifier_map.items() if e.modifiers() & qt_modifier],
     }
+
+
+class PanZoomControls:
+    def __init__(self, gl_widget, camera, mouse_sensitivity=0.005):
+        self.gl_widget = gl_widget
+        self.camera = camera
+        self.panning = False
+        self.mouse_sensitivity = mouse_sensitivity
+
+    def mouse_event(self, e):
+        e = pyqt_to_radiant_mouse(e)
+        if e["type"] == "Press" and e['button'] == "Middle":
+            self.panning = True
+            self.hide_mouse()
+            self.set_mouse_pos(*self.get_widget_center())
+        elif e["type"] == "Release" and e['button'] == "Middle":
+            self.panning = False
+            self.show_mouse()
+        elif e["type"] == "Move" and self.panning:
+            center = self.get_widget_center()
+            if e['pos'] == center:
+                return  # ignore events programmatically triggered by centering the mouse
+
+            dx = (e['pos'][0] - center[0]) * self.mouse_sensitivity
+            dy = (e['pos'][1] - center[1]) * self.mouse_sensitivity
+            radiant.pan_camera(self.camera, -dx, dy)
+
+            self.set_mouse_pos(*center)
+
+    def hide_mouse(self):
+        QApplication.setOverrideCursor(QCursor(Qt.BlankCursor))
+
+    def show_mouse(self):
+        QApplication.setOverrideCursor(QCursor(Qt.ArrowCursor))
+
+    def set_mouse_pos(self, x, y):
+        QCursor().setPos(x, y)
+
+    def get_widget_center(self):
+        screen_topleft = self.gl_widget.mapToGlobal(self.gl_widget.pos())
+        size = self.gl_widget.size()
+        return screen_topleft.x() + size.width() / 2, screen_topleft.y() + size.height() / 2
+
+    def key_event(self, e):
+        e = pyqt_to_radiant_key(e)
+        pass
 
 
 class GLWidget(QOpenGLWidget):
@@ -114,22 +161,22 @@ class GLWidget(QOpenGLWidget):
         self.renderer.render(self.scene, self.camera, self.light)
 
     def keyPressEvent(self, e):
-        print(key_event(e))
+        self.controls.key_event(e)
 
     def keyReleaseEvent(self, e):
-        print(key_event(e))
+        self.controls.key_event(e)
 
     def mousePressEvent(self, e):
-        print(mouse_event(e))
+        self.controls.mouse_event(e)
 
     def mouseReleaseEvent(self, e):
-        print(mouse_event(e))
+        self.controls.mouse_event(e)
 
     def mouseMoveEvent(self, e):
-        print(mouse_event(e))
+        self.controls.mouse_event(e)
 
     def wheelEvent(self, e):
-        print(mouse_event(e))
+        self.controls.mouse_event(e)
 
 
 def show_scene(title, scene, camera, light):

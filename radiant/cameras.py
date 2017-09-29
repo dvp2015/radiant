@@ -4,6 +4,9 @@ import pyrr
 from .scenes import Object3D
 
 
+__all__ = ('Camera', 'PerspectiveCamera', 'pan_camera')
+
+
 class Camera(Object3D):
     def __init__(self, target=(0, 0, 0), up=(0, 1, 0), **kwargs):
         super().__init__(**kwargs)
@@ -59,6 +62,11 @@ class Camera(Object3D):
         if up is not None:
             self._up = up
         self.dirty = True
+
+
+def pan_camera(camera, x, y):
+    t = camera.view_side * x + camera.view_up * y
+    camera.look_at(camera.position + t, camera.target + t)
 
 
 class PerspectiveCamera(Camera):
