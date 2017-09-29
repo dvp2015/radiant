@@ -57,11 +57,10 @@ class Camera(Object3D):
         super().update()
 
     def look_at(self, eye, target, up=None):
-        self._position = eye
-        self._target = target
+        self.position = eye
+        self.target = target
         if up is not None:
-            self._up = up
-        self.dirty = True
+            self.up = up
 
 
 def pan_camera(camera, x, y):
