@@ -5,7 +5,7 @@ import pyrr
 __all__ = ('decompose',)
 
 
-def decompose(matrix44):
+def decompose(m):
     # indexing pyrr matrices is not a pleasant experience, so let's
     m = np.asarray(m)
 
