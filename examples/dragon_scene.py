@@ -12,8 +12,8 @@ def generate_scene():
 
     # put up a mesh somewhere
     red = radiant.MeshPhongMaterial(color=(0.1, 0.5, 0.3, 1.0), shininess=16.0)
-    plane = radiant.Mesh(dragon_geometry, red)
-    scene.append_child(plane)
+    dragon = radiant.Mesh(dragon_geometry, red)
+    scene.append_child(dragon)
 
     # create a camera
     camera = radiant.PerspectiveCamera(position=[-5, 2, -5], target=[0, 0, 0], near=0.1, far=15.0)

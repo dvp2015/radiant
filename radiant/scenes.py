@@ -8,13 +8,13 @@ from .maths import decompose
 
 class Object3D:
     def __init__(self, position=(0, 0, 0), scale=(1, 1, 1), rotation=(0, 0, 0)):
-        self.position = position
-        self.scale = scale
-        self.rotation = rotation
         self._parent = None
         self._children = tuple()
         self._model = None
         self.dirty = True
+        self.position = position
+        self.scale = scale
+        self.rotation = rotation
 
     def update(self):
         if self.dirty:
@@ -27,6 +27,11 @@ class Object3D:
                 self._model = self._parent.model * self._model
             self._model.flags.writeable = False
             self.dirty = False
+
+    def mark_as_dirty(self):
+        self.dirty = True
+        for child in self._children:
+            child.mark_as_dirty()
 
     @property
     def model(self):
@@ -44,7 +49,7 @@ class Object3D:
     def position(self, value):
         self._position = pyrr.Vector3(value, dtype='f4')
         self._position.flags.writeable = False
-        self.dirty = True
+        self.mark_as_dirty()
 
     @property
     def scale(self):
@@ -54,7 +59,7 @@ class Object3D:
     def scale(self, value):
         self._scale = pyrr.Vector3(value, dtype='f4')
         self._scale.flags.writeable = False
-        self.dirty = True
+        self.mark_as_dirty()
 
     @property
     def rotation(self):
@@ -78,7 +83,7 @@ class Object3D:
         else:
             raise ValueError(f"unexpected type {type(value)} for rotation")
         self._rotation.flags.writeable = False
-        self.dirty = True
+        self.mark_as_dirty()
 
     @property
     def children(self):
@@ -94,14 +99,16 @@ class Object3D:
         # TODO: detect circular references?
         self._children = self._children + tuple([child])
         child._parent = self
-        child.dirty = True
+        child.mark_as_dirty()
 
     def remove_child(self, child):
         if child.parent is not self:
             raise RuntimeError("Node is not a child of this object")
-        self._children = tuple([c for c in self._children if c is not child])
+        children = list(self._children)
+        children.remove(child)
+        self._children = tuple(children)
         child._parent = None
-        child.dirty = True
+        child.mark_as_dirty()
 
 
 class Scene(Object3D):
