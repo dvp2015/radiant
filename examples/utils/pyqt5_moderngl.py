@@ -29,45 +29,39 @@ class Window(QWidget):
         self.setLayout(layout)
 
 
-def pyqt_to_radiant_mouse(e):
-    """Map a PyQt5 mouse event to a radiant event."""
+def handle_pyqt5_mouse(e):
+    """Update radiant.inputs based on a PyQt5 mouse event."""
     type_map = {
         QEvent.MouseButtonPress: "Press",
         QEvent.MouseButtonRelease: "Release",
-        QEvent.MouseButtonDblClick: "DblClick",
-        QEvent.MouseMove: "Move",
     }
 
     button_map = {
-        "Left": Qt.LeftButton,
-        "Right": Qt.RightButton,
-        "Middle": Qt.MiddleButton,
-    }
-    button_map_inv = {v: k for k, v in button_map.items()}
-
-    modifier_map = {
-        "Shift": Qt.ShiftModifier,
-        "Ctrl": Qt.ControlModifier,
-        "Alt": Qt.AltModifier,
+        Qt.LeftButton: "Left",
+        Qt.RightButton: "Right",
+        Qt.MiddleButton: "Middle",
     }
 
-    re = {
-        'pos': (e.globalX(), e.globalY()),
-        'buttons': [button for button, qt_button in button_map.items() if e.buttons() & qt_button],
-        'modifiers': [key for key, qt_modifier in modifier_map.items() if e.modifiers() & qt_modifier],
-    }
+    radiant.inputs.mouse_position = (e.globalX(), e.globalY())
 
     if isinstance(e, QWheelEvent):
-        re['type'] = "Wheel"
-        re['delta'] = (e.angleDelta().x(), e.angleDelta().y())
+        radiant.inputs.mouse_wheel_delta[0] += e.angleDelta().x()
+        radiant.inputs.mouse_wheel_delta[1] += e.angleDelta().y()
     else:
-        re['type'] = type_map[e.type()]
-        re['button'] = button_map_inv.get(e.button())
+        mouse_button_type = type_map.get(e.type())
+        mouse_button = button_map.get(e.button())
+        
+        if mouse_button_type == "Press":
+            radiant.inputs.mouse_button_down[mouse_button] = True
+            radiant.inputs.mouse_button_held[mouse_button] = True
+            radiant.inputs.mouse_button_up[mouse_button] = False
+        elif mouse_button_type == "Release":
+            radiant.inputs.mouse_button_down[mouse_button] = False
+            radiant.inputs.mouse_button_held[mouse_button] = False
+            radiant.inputs.mouse_button_up[mouse_button] = True
 
-    return re
 
-
-def pyqt_to_radiant_key(e):
+def handle_pyqt5_key(e):
     """Map a PyQt5 key event to a radiant event."""
     type_map = {
         QEvent.KeyPress: "Press",
@@ -80,11 +74,22 @@ def pyqt_to_radiant_key(e):
         "Alt": Qt.AltModifier,
     }
 
-    return {
-        'type': type_map[e.type()],
-        'key': e.text(),
-        'modifiers': [key for key, qt_modifier in modifier_map.items() if e.modifiers() & qt_modifier],
-    }
+    key_type = type_map[e.type()]
+    key = e.text()
+
+    if not key:
+        for modifier_key, qt_modifier in modifier_map.items():
+            radiant.inputs.key_held[modifier_key] = e.modifiers() & qt_modifier
+    else:
+        if key_type == "Press":
+            radiant.inputs.key_down[key] = True
+            radiant.inputs.key_held[key] = True
+            radiant.inputs.key_up[key] = False
+        elif key_type == "Release":
+            radiant.inputs.key_down[key] = False
+            radiant.inputs.key_held[key] = False
+            radiant.inputs.key_up[key] = True
+        radiant.inputs.input_string += key
 
 
 class PanZoomControls:
@@ -130,7 +135,7 @@ class PanZoomControls:
 
     def key_event(self, e):
         e = pyqt_to_radiant_key(e)
-        pass
+        print(e)
 
 
 class GLWidget(QOpenGLWidget):

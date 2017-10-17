@@ -7,6 +7,7 @@ from .cameras import *
 from .renderers import *
 from .loaders import *
 from .lights import *
+from . import inputs
 from . import maths
 
 __version__ = '0.1.0'
