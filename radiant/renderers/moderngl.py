@@ -8,27 +8,23 @@ from ..scenes import Mesh
 
 
 class ModernGLRenderer(Renderer):
-    def __init__(self, context=None):
+    def __init__(self, context=None, clear_color=(0.9, 0.9, 0.9)):
         self.ctx = context or ModernGL.create_context()
+        self.clear_color = clear_color
 
     @property
     def viewport(self):
         return self.ctx.viewport
 
     @viewport.setter
-    def viewport(self, viewport):
-        self.ctx.viewport = viewport
+    def viewport(self, value):
+        self.ctx.viewport = value
 
     def render(self, scene, camera, light=None):
         """
         Render scene from the camera viewpoint.
         """
-        camera.update()
-        if light:
-            light.update()
-
         def visit(node):
-            node.update()
             self.render_object(node, camera, light=light)
             for child in node.children:
                 visit(child)
@@ -36,7 +32,7 @@ class ModernGLRenderer(Renderer):
         # get going
         self.ctx.enable(ModernGL.DEPTH_TEST)
         self.ctx.enable(ModernGL.CULL_FACE)
-        self.ctx.clear(0.9, 0.9, 0.9)
+        self.ctx.clear(*self.clear_color)
         visit(scene)
         self.ctx.finish()
 
@@ -85,7 +81,9 @@ class ModernGLRenderer(Renderer):
             }
             if light:
                 # add the light uniforms
-                uniforms.update(light.uniforms)
+                uniforms.update({
+                    'light_pos': light.position,
+                })
             # add the material uniforms
             uniforms.update(node.material.uniforms)
 

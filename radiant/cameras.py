@@ -10,13 +10,23 @@ __all__ = ('Camera', 'PerspectiveCamera', 'pan_camera')
 class Camera(Object3D):
     def __init__(self, target=(0, 0, 0), up=(0, 1, 0), **kwargs):
         super().__init__(**kwargs)
+        self._view = None
+        self._view_dirty = False
         self.target = target
         self.up = up
-        self._view = None
 
     @property
     def view(self):
+        if self._view_dirty:
+            self._view = pyrr.Matrix44.look_at(self._position, self._target, self._up, dtype='f4')
+            self._view.flags.writeable = False
+            self._view_dirty = False
         return self._view
+
+    @Object3D.position.setter
+    def position(self, value):
+        Object3D.position.fset(self, value)  # https://bugs.python.org/issue14965#msg179217
+        self._view_dirty = True
 
     @property
     def target(self):
@@ -26,7 +36,7 @@ class Camera(Object3D):
     def target(self, value):
         self._target = pyrr.Vector3(value, dtype='f4')
         self._target.flags.writeable = False
-        self.dirty = True
+        self._view_dirty = True
 
     @property
     def up(self):
@@ -36,7 +46,7 @@ class Camera(Object3D):
     def up(self, value):
         self._up = pyrr.Vector3(value, dtype='f4')
         self._up.flags.writeable = False
-        self.dirty = True
+        self._view_dirty = True
 
     @property
     def view_side(self):
@@ -49,12 +59,6 @@ class Camera(Object3D):
     @property
     def view_forward(self):
         return pyrr.Vector3(-np.asarray(self._view)[0:3, 2])
-
-    def update(self):
-        if self.dirty:
-            self._view = pyrr.Matrix44.look_at(self._position, self._target, self._up, dtype='f4')
-            self._view.flags.writeable = False
-        super().update()
 
     def look_at(self, eye, target, up=None):
         self.position = eye
@@ -72,13 +76,18 @@ class PerspectiveCamera(Camera):
     def __init__(self, fov=45.0, aspect=4.0/3.0, near=0.1, far=1000.0, **kwargs):
         super().__init__(**kwargs)
         self._projection = None
-        self._fov = fov
-        self._aspect = aspect
-        self._near = near
-        self._far = far
+        self._projection_dirty = False
+        self.fov = fov
+        self.aspect = aspect
+        self.near = near
+        self.far = far
 
     @property
     def projection(self):
+        if self._projection_dirty:
+            self._projection = pyrr.Matrix44.perspective_projection(self._fov, self._aspect, self._near, self._far, dtype='f4')
+            self._projection.flags.writeable = False
+            self._projection_dirty = False
         return self._projection
 
     @property
@@ -88,7 +97,7 @@ class PerspectiveCamera(Camera):
     @fov.setter
     def fov(self, value):
         self._fov = value
-        self.dirty = True
+        self._projection_dirty = True
 
     @property
     def aspect(self):
@@ -97,7 +106,7 @@ class PerspectiveCamera(Camera):
     @aspect.setter
     def aspect(self, value):
         self._aspect = value
-        self.dirty = True
+        self._projection_dirty = True
 
     @property
     def near(self):
@@ -106,7 +115,7 @@ class PerspectiveCamera(Camera):
     @near.setter
     def near(self, value):
         self._near = value
-        self.dirty = True
+        self._projection_dirty = True
 
     @property
     def far(self):
@@ -115,10 +124,4 @@ class PerspectiveCamera(Camera):
     @far.setter
     def far(self, value):
         self._far = value
-        self.dirty = True
-
-    def update(self):
-        if self.dirty:
-            self._projection = pyrr.Matrix44.perspective_projection(self._fov, self._aspect, self._near, self._far, dtype='f4')
-            self._projection.flags.writeable = False
-        super().update()
+        self._projection_dirty = True

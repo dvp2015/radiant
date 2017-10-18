@@ -11,30 +11,28 @@ class Object3D:
         self._parent = None
         self._children = tuple()
         self._model = None
-        self.dirty = True
+        self._model_dirty = True
         self.position = position
         self.scale = scale
         self.rotation = rotation
+        self.behaviours = []
 
-    def update(self):
-        if self.dirty:
+    def model_dirty(self):
+        self._model_dirty = True
+        for child in self._children:
+            child.model_dirty()
+
+    @property
+    def model(self):
+        if self._model_dirty:
             scale = pyrr.Matrix44.from_scale(self._scale, dtype='f4')
             translate = pyrr.Matrix44.from_translation(self._position, dtype='f4')
             # Scale -> Rotate -> Translate
             self._model = translate * self._rotation.matrix44.astype('f4') * scale
             if self._parent:
-                self._parent.update()
                 self._model = self._parent.model * self._model
             self._model.flags.writeable = False
-            self.dirty = False
-
-    def mark_as_dirty(self):
-        self.dirty = True
-        for child in self._children:
-            child.mark_as_dirty()
-
-    @property
-    def model(self):
+            self._model_dirty = False
         return self._model
 
     @model.setter
@@ -49,7 +47,7 @@ class Object3D:
     def position(self, value):
         self._position = pyrr.Vector3(value, dtype='f4')
         self._position.flags.writeable = False
-        self.mark_as_dirty()
+        self.model_dirty()
 
     @property
     def scale(self):
@@ -59,7 +57,7 @@ class Object3D:
     def scale(self, value):
         self._scale = pyrr.Vector3(value, dtype='f4')
         self._scale.flags.writeable = False
-        self.mark_as_dirty()
+        self.model_dirty()
 
     @property
     def rotation(self):
@@ -83,7 +81,7 @@ class Object3D:
         else:
             raise ValueError(f"unexpected type {type(value)} for rotation")
         self._rotation.flags.writeable = False
-        self.mark_as_dirty()
+        self.model_dirty()
 
     @property
     def children(self):
@@ -99,7 +97,7 @@ class Object3D:
         # TODO: detect circular references?
         self._children = self._children + tuple([child])
         child._parent = self
-        child.mark_as_dirty()
+        child.model_dirty()
 
     def remove_child(self, child):
         if child.parent is not self:
@@ -108,7 +106,13 @@ class Object3D:
         children.remove(child)
         self._children = tuple(children)
         child._parent = None
-        child.mark_as_dirty()
+        child.model_dirty()
+
+    def update(self):
+        for behaviour in self.behaviours:
+            behaviour.update(self)
+        for child in self._children:
+            child.update()
 
 
 class Scene(Object3D):
