@@ -91,6 +91,15 @@ class PerspectiveCamera(Camera):
         self.dirty = True
 
     @property
+    def aspect(self):
+        return self._aspect
+
+    @aspect.setter
+    def aspect(self, value):
+        self._aspect = value
+        self.dirty = True
+
+    @property
     def near(self):
         return self._near
 
