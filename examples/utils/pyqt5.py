@@ -5,21 +5,20 @@ from PyQt5.QtGui import QSurfaceFormat, QWheelEvent
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QOpenGLWidget, QWidget
 
 import radiant
-from radiant.renderers.moderngl import ModernGLRenderer
 
 
 app = None  # this is the only variable scoped globally so the garbage collector is forced to clear it last
 
 
 class Window(QWidget):
-    def __init__(self, title, scene, camera, light):
+    def __init__(self, title, scene, camera, light, renderer_type):
         super().__init__()
 
         self.glWidget = GLWidget()
-        self.glWidget.setRendererType(ModernGLRenderer)
+        self.glWidget.setRendererType(renderer_type)
         self.glWidget.setScene(scene, camera, light)
 
-        self.setWindowTitle(f"PyQt5 + ModernGL: {title}")
+        self.setWindowTitle(title)
 
         layout = QHBoxLayout()
         layout.addWidget(self.glWidget)
@@ -205,11 +204,11 @@ class GLWidget(QOpenGLWidget):
         handle_pyqt5_mouse(e)
 
 
-def show_scene(title, scene, camera, light):
+def show_scene(title, scene, camera, light, renderer_type):
     global app
     app = QApplication(sys.argv)
 
-    window = Window(title, scene, camera, light)
+    window = Window(title, scene, camera, light, renderer_type)
     window.resize(640, 480)
     window.show()
 

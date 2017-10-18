@@ -1,6 +1,7 @@
-from utils.pyqt5_moderngl import show_scene
+from utils.pyqt5 import show_scene
 
 import radiant
+from radiant.renderers.moderngl import ModernGLRenderer
 
 
 def generate_scene():
@@ -27,4 +28,4 @@ def generate_scene():
 
 
 if __name__ == "__main__":
-    show_scene("dragon scene", *generate_scene())
+    show_scene("dragon scene", *generate_scene(), ModernGLRenderer)
