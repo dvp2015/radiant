@@ -10,6 +10,7 @@ class Object3D:
     def __init__(self, position=(0, 0, 0), scale=(1, 1, 1), rotation=(0, 0, 0)):
         self._parent = None
         self._children = tuple()
+        self._transform = None
         self._model = None
         self._model_dirty = True
         self.position = position
@@ -24,24 +25,37 @@ class Object3D:
 
     @property
     def model(self):
+        """Transforms to world coordinate space."""
         if self._model_dirty:
             scale = pyrr.Matrix44.from_scale(self._scale, dtype='f4')
             translate = pyrr.Matrix44.from_translation(self._position, dtype='f4')
             # Scale -> Rotate -> Translate
-            self._model = translate * self._rotation.matrix44.astype('f4') * scale
+            self._transform = translate * self._rotation.matrix44.astype('f4') * scale
+            self._transform.flags.writeable = False
             if self._parent:
-                self._model = self._parent.model * self._model
-            self._model.flags.writeable = False
+                self._model = self._parent.model * self._transform
+                self._model.flags.writeable = False
             self._model_dirty = False
         return self._model
 
-    @model.setter
-    def model(self, value):
+    @property
+    def transform(self):
+        """Transforms to local coordinate space."""
+        if self._model_dirty:
+            _ = self.model  # noqa: recomputing the transform happens as part of recomputing the model matrix
+        return self._transform
+
+    @transform.setter
+    def transform(self, value):
         self.scale, self.rotation, self.position = decompose(value)
 
     @property
     def position(self):
         return self._position
+
+    @property
+    def position_world(self):
+        return pyrr.Vector3(np.asarray(self.model)[3, :3])
 
     @position.setter
     def position(self, value):
