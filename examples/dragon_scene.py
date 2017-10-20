@@ -1,7 +1,7 @@
 from utils.pyqt5 import show_scene
 
 import radiant
-from radiant.renderers.moderngl import ModernGLRenderer
+from radiant.moderngl import ModernGLRenderer
 
 
 def generate_scene():

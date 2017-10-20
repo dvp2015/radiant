@@ -3,8 +3,8 @@ from functools import lru_cache
 import ModernGL
 import numpy as np
 
-from .base import Renderer
-from ..scenes import Mesh
+from .renderers import Renderer
+from .scenes import Mesh
 
 
 class ModernGLRenderer(Renderer):
