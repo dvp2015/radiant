@@ -82,7 +82,7 @@ class ModernGLRenderer(Renderer):
             if light:
                 # add the light uniforms
                 uniforms.update({
-                    'light_pos': light.position,
+                    'light_pos': light.position_world,
                 })
             # add the material uniforms
             uniforms.update(node.material.uniforms)

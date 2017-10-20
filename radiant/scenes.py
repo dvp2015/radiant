@@ -35,6 +35,8 @@ class Object3D:
             if self._parent:
                 self._model = self._parent.model * self._transform
                 self._model.flags.writeable = False
+            else:
+                self._model = self._transform
             self._model_dirty = False
         return self._model
 
