@@ -9,11 +9,11 @@ app = None  # this is the only variable scoped globally so the garbage collector
 
 
 class Window(QWidget):
-    def __init__(self, title, scene, camera, light, renderer_type):
+    def __init__(self, title, scene, camera, light, renderer):
         super().__init__()
 
         self.glWidget = RadiantWidget()
-        self.glWidget.setRendererType(renderer_type)
+        self.glWidget.setRenderer(renderer)
         self.glWidget.setScene(scene, camera, light)
 
         self.setWindowTitle(title)
@@ -24,11 +24,11 @@ class Window(QWidget):
         self.setLayout(layout)
 
 
-def show_scene(title, scene, camera, light, renderer_type):
+def show_scene(title, scene, camera, light, renderer):
     global app
     app = QApplication(sys.argv)
 
-    window = Window(title, scene, camera, light, renderer_type)
+    window = Window(title, scene, camera, light, renderer)
     window.resize(640, 480)
     window.show()
 

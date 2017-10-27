@@ -4,6 +4,17 @@ import radiant
 from radiant.moderngl import ModernGLRenderer
 
 
+# class PanZoomCameraBehaviour:
+#     def __init__(self):
+#         self.last_mouse = (0, 0)
+
+#     def update(self, object3d):
+#         if radiant.inputs.mouse_button_held["Middle"]:
+#             x = radiant.inputs.mouse_position[0]
+
+#             radiant.pan_camera(object3d, x, y)
+
+
 def generate_scene():
     scene = radiant.Scene()
 
@@ -19,6 +30,7 @@ def generate_scene():
     # create a camera
     camera = radiant.PerspectiveCamera(position=[-5, 2, -5], target=[0, 0, 0], near=0.1, far=15.0)
     scene.append_child(camera)
+    #camera.behaviours.append(PanZoomCameraBehaviour())
 
     # create a light
     light = radiant.PointLight()
@@ -28,4 +40,5 @@ def generate_scene():
 
 
 if __name__ == "__main__":
-    show_scene("dragon scene", *generate_scene(), ModernGLRenderer)
+    renderer = ModernGLRenderer()
+    show_scene("dragon scene", *generate_scene(), renderer)

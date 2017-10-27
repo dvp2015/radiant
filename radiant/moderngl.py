@@ -8,9 +8,11 @@ from .scenes import Mesh
 
 
 class ModernGLRenderer(Renderer):
-    def __init__(self, context=None, clear_color=(0.9, 0.9, 0.9)):
-        self.ctx = context or ModernGL.create_context()
+    def __init__(self, clear_color=(0.9, 0.9, 0.9)):
         self.clear_color = clear_color
+
+    def init_gl(self, context=None):
+        self.ctx = context or ModernGL.create_context()
 
     @property
     def viewport(self):
