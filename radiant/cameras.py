@@ -67,8 +67,8 @@ class Camera(Object3D):
             self.up = up
 
 
-def pan_camera(camera, x, y):
-    t = camera.view_side * x + camera.view_up * y
+def pan_camera(camera, x, y, sensitivity=1.0):
+    t = camera.view_side * x * sensitivity + camera.view_up * y * sensitivity
     camera.look_at(camera.position + t, camera.target + t)
 
 
