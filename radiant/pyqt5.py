@@ -102,13 +102,6 @@ class RadiantWidget(QOpenGLWidget):
         """
         self._animated = animated
 
-    def update(self):
-        super().update()
-        if self._animated:
-            # if we are animated, enter a game loop
-            self.request_process_input()
-            QTimer.singleShot(0, self.update)
-
     def initializeGL(self):
         self._renderer.init_gl()
 
@@ -119,6 +112,13 @@ class RadiantWidget(QOpenGLWidget):
 
     def paintGL(self):
         self._renderer.render(self._scene, self._camera, self._light)
+        self.animation_loop()
+
+    def animation_loop(self):
+        if self._animated:
+            self.request_process_input()
+            self.update()
+            QTimer.singleShot(0, self.animation_loop)
 
     def process_input(self):
         self._scene.update()

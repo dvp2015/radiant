@@ -17,10 +17,9 @@ mouse_button_up = defaultdict(lambda: False)  # True if it was released in the c
 
 def tick():
     """Resets the per-frame values."""
-    global mouse_wheel_delta, mouse_position, input_string
+    global mouse_wheel_delta, input_string
     mouse_wheel_delta[0] = 0.
     mouse_wheel_delta[1] = 0.
-    mouse_position = (0., 0.)
     input_string = ""
 
     global key_down, key_up
