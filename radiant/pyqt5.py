@@ -28,7 +28,6 @@ modifier_map = {
 
 def handle_pyqt5_mouse(e):
     """Update radiant.inputs based on a PyQt5 mouse event."""
-    inputs.event_occurred = True
     inputs.mouse_position = (e.globalX(), e.globalY())
     if isinstance(e, QWheelEvent):
         inputs.mouse_wheel_delta[0] += e.angleDelta().x()
@@ -48,7 +47,6 @@ def handle_pyqt5_mouse(e):
 
 def handle_pyqt5_key(e):
     """Update radiant.inputs based on a PyQt5 key event."""
-    inputs.event_occurred = True
     key = e.text()
     if not key:
         for modifier_key, qt_modifier in modifier_map.items():
@@ -78,9 +76,10 @@ class RadiantWidget(QOpenGLWidget):
         fmt.setStencilBufferSize(8)
         self.setFormat(fmt)
 
-        self.setMouseTracking(True)
+        # self.setMouseTracking(True) users need to determine if this is what they want or not
 
         self._animated = False
+        self._process_input_requested = False
 
     def setScene(self, scene, camera, light):
         self._scene = scene
@@ -103,23 +102,15 @@ class RadiantWidget(QOpenGLWidget):
         """
         self._animated = animated
 
-    def loop(self):
-        # (1) if the scene is animated, we actively keep running behaviours and redrawing
-        # (2) otherwise, we wait for inputs to occur
-        # (3) alternatively, users can schedule a redraw manually by calling .update()
-        if self._animated or inputs.event_occurred:
-            # process input
-            self._scene.update()
-            inputs.tick()
-            # schedule draw event
-            self.update()
-        # schedule next loop iteration
-        QTimer.singleShot(0, self.loop)
+    def update(self):
+        super().update()
+        if self._animated:
+            # if we are animated, enter a game loop
+            self.request_process_input()
+            QTimer.singleShot(0, self.update)
 
     def initializeGL(self):
         self._renderer.init_gl()
-        # start game loop
-        QTimer.singleShot(0, self.loop)
 
     def resizeGL(self, width, height):
         self._renderer.viewport = (0, 0, width, height)
@@ -129,20 +120,36 @@ class RadiantWidget(QOpenGLWidget):
     def paintGL(self):
         self._renderer.render(self._scene, self._camera, self._light)
 
+    def process_input(self):
+        self._scene.update()
+        inputs.tick()
+        self._process_input_requested = False
+
+    def request_process_input(self):
+        if not self._process_input_requested:
+            QTimer.singleShot(0, self.process_input)
+            self._process_input_requested = True
+
     def keyPressEvent(self, e):
         handle_pyqt5_key(e)
+        self.request_process_input()
 
     def keyReleaseEvent(self, e):
         handle_pyqt5_key(e)
+        self.request_process_input()
 
     def mousePressEvent(self, e):
         handle_pyqt5_mouse(e)
+        self.request_process_input()
 
     def mouseReleaseEvent(self, e):
         handle_pyqt5_mouse(e)
+        self.request_process_input()
 
     def mouseMoveEvent(self, e):
         handle_pyqt5_mouse(e)
+        self.request_process_input()
 
     def wheelEvent(self, e):
         handle_pyqt5_mouse(e)
+        self.request_process_input()
