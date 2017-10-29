@@ -3,6 +3,7 @@ from collections import defaultdict
 
 # window managers should update these values
 mouse_wheel_delta = [0., 0.]
+mouse_position_global = (0., 0.)
 mouse_position = (0., 0.)
 input_string = ""
 

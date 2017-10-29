@@ -26,9 +26,13 @@ modifier_map = {
 }
 
 
-def handle_pyqt5_mouse(e):
+def handle_pyqt5_mouse(e, widget):
     """Update radiant.inputs based on a PyQt5 mouse event."""
-    inputs.mouse_position = (e.globalX(), e.globalY())
+    inputs.mouse_position_global = (e.globalX(), e.globalY())
+    inputs.mouse_position = (
+        e.x() / widget.width() * 2 - 1,
+        -(e.y() / widget.height() * 2 - 1),
+    )
     if isinstance(e, QWheelEvent):
         inputs.mouse_wheel_delta[0] += e.angleDelta().x()
         inputs.mouse_wheel_delta[1] += e.angleDelta().y()
@@ -97,7 +101,7 @@ class RadiantWidget(QOpenGLWidget):
 
     def setAnimated(self, animated):
         """
-        Setting animated to True will configure this widget to continuously run behaviours and redraw, 
+        Setting animated to True will configure this widget to continuously run behaviours and redraw,
         independent of user input occurring or not. Default is False.
         """
         self._animated = animated
@@ -131,25 +135,25 @@ class RadiantWidget(QOpenGLWidget):
             self._process_input_requested = True
 
     def keyPressEvent(self, e):
-        handle_pyqt5_key(e)
+        handle_pyqt5_key(e, self)
         self.request_process_input()
 
     def keyReleaseEvent(self, e):
-        handle_pyqt5_key(e)
+        handle_pyqt5_key(e, self)
         self.request_process_input()
 
     def mousePressEvent(self, e):
-        handle_pyqt5_mouse(e)
+        handle_pyqt5_mouse(e, self)
         self.request_process_input()
 
     def mouseReleaseEvent(self, e):
-        handle_pyqt5_mouse(e)
+        handle_pyqt5_mouse(e, self)
         self.request_process_input()
 
     def mouseMoveEvent(self, e):
-        handle_pyqt5_mouse(e)
+        handle_pyqt5_mouse(e, self)
         self.request_process_input()
 
     def wheelEvent(self, e):
-        handle_pyqt5_mouse(e)
+        handle_pyqt5_mouse(e, self)
         self.request_process_input()
