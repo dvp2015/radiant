@@ -1,6 +1,6 @@
 import sys
 
-from PyQt5.QtWidgets import QApplication, QHBoxLayout, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow
 import radiant
 from radiant.pyqt5 import RadiantWidget
 from radiant.moderngl import ModernGLRenderer
@@ -30,22 +30,6 @@ class PanZoomCameraBehaviour:
             self.gl_widget.update()
 
 
-class Window(QWidget):
-    def __init__(self, title, scene, camera, light, renderer):
-        super().__init__()
-
-        self.glWidget = RadiantWidget()
-        self.glWidget.setRenderer(renderer)
-        self.glWidget.setScene(scene, camera, light)
-
-        self.setWindowTitle(title)
-
-        layout = QHBoxLayout()
-        layout.addWidget(self.glWidget)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
-
-
 if __name__ == "__main__":
     # scene setup
     scene = radiant.Scene()
@@ -73,13 +57,18 @@ if __name__ == "__main__":
     # renderer
     renderer = ModernGLRenderer()
 
-    # Qt window
-    window = Window(__file__, scene, camera, light, renderer)
+    # create Qt Radiant widget
+    gl_widget = RadiantWidget()
+    gl_widget.setRenderer(renderer)
+    gl_widget.setScene(scene, camera, light)
 
-    # interaction
-    camera.behaviours.append(PanZoomCameraBehaviour(window.glWidget))
+    # now we can set up interaction on our scene, with the widget reference in hand
+    camera.behaviours.append(PanZoomCameraBehaviour(gl_widget))
 
     # show & run
+    window = QMainWindow()
     window.resize(640, 480)
+    window.setWindowTitle(__file__)
+    window.setCentralWidget(gl_widget)
     window.show()
     sys.exit(app.exec_())
