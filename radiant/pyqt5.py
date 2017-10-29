@@ -49,7 +49,7 @@ def handle_pyqt5_mouse(e, widget):
             inputs.mouse_button_up[mouse_button] = True
 
 
-def handle_pyqt5_key(e):
+def handle_pyqt5_key(e, widget):
     """Update radiant.inputs based on a PyQt5 key event."""
     key = e.text()
     if not key:
