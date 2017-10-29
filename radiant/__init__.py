@@ -10,6 +10,4 @@ from .lights import *
 from . import inputs
 from . import maths
 
-# moderngl, pyqt5 are back-end specific and should be imported by the library user manually
-
 __version__ = '0.1.0'
