@@ -3,3 +3,5 @@ pillow
 pytest
 flake8
 flake8-import-order
+PyQt5
+moderngl
